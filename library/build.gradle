@@ -1,0 +1,122 @@
+apply plugin: 'com.android.library'
+apply plugin: 'com.github.dcendents.android-maven'
+apply plugin: 'com.jfrog.bintray'
+
+Properties props = new Properties()
+props.load(project.rootProject.file('local.properties').newDataInputStream())
+
+final MIN_SDK_VERSION           = 19
+final COMPILE_SDK_VERSION       = 23
+final BUILD_TOOLS_VERSION       = '23.0.3'
+final VERSION_CODE              = 1
+final VERSION_NAME              = '0.1.0'
+final SITE_URL                  = 'project site'     // git for open source
+final REPO_URL                  = 'repository site'  // git for open source
+final DEVELOPER_NAME            = 'your name'
+final DEVELOPER_EMAIL           = 'contact email'
+final PROJECT_NAME              = 'boilerplate'
+final PROJECT_DESC              = 'your project description'
+final BINTRAY_USER              = props.getProperty("bintray.user")
+final BINTRAY_API_KEY           = props.getProperty("bintray.apikey")
+
+group   = 'com.orcanote.boilerplate'
+version = VERSION_NAME
+
+android {
+    compileSdkVersion COMPILE_SDK_VERSION
+    buildToolsVersion BUILD_TOOLS_VERSION
+
+    defaultConfig {
+        minSdkVersion    MIN_SDK_VERSION
+        targetSdkVersion COMPILE_SDK_VERSION
+        versionCode      VERSION_CODE
+        versionName      VERSION_NAME
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        }
+    }
+}
+
+dependencies {
+    final SUPPORT_LIBRARY_VERSION   = '23.2.1'
+
+    compile fileTree(dir: 'libs', include: ['*.jar'])
+
+    testCompile 'junit:junit:4.12'
+
+    compile "com.android.support:appcompat-v7:$SUPPORT_LIBRARY_VERSION"
+}
+
+bintray {
+    user           = BINTRAY_USER
+    key            = BINTRAY_API_KEY
+    configurations = ['archives']
+    pkg {
+        repo                  = 'maven'
+        name                  = PROJECT_NAME
+        desc                  = PROJECT_DESC
+        websiteUrl            = SITE_URL
+        issueTrackerUrl       = "$SITE_URL/issues"
+        vcsUrl                = REPO_URL
+        licenses              = ['Apache-2.0']
+        labels                = ['android', 'switch', 'view']
+        publicDownloadNumbers = true
+    }
+}
+
+install {
+    repositories.mavenInstaller {
+        pom.project {
+            packaging  'aar'
+            name       PROJECT_NAME
+            url        SITE_URL
+            licenses {
+                license {
+                    name 'The Apache Software License, Version 2.0'
+                    url  'http://www.apache.org/licenses/LICENSE-2.0.txt'
+                }
+            }
+            developers {
+                developer {
+                    id    DEVELOPER_NAME
+                    name  DEVELOPER_NAME
+                    email DEVELOPER_EMAIL
+                }
+            }
+            scm {
+                url                 SITE_URL
+                connection          REPO_URL
+                developerConnection REPO_URL
+
+            }
+        }
+    }
+}
+
+task sourcesJar(type: Jar) {
+    from android.sourceSets.main.java.srcDirs
+    classifier = 'sources'
+}
+
+task javadoc(type: Javadoc) {
+    source = android.sourceSets.main.java.srcDirs
+    classpath += project.files(android.getBootClasspath().join(File.pathSeparator))
+}
+
+task javadocJar(type: Jar, dependsOn: javadoc) {
+    classifier = 'javadoc'
+    from javadoc.destinationDir
+}
+
+artifacts {
+    archives javadocJar
+    archives sourcesJar
+}
+
+task findConventions << {
+    println project.getConvention()
+}
